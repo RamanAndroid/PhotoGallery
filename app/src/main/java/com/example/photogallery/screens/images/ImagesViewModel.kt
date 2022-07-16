@@ -9,7 +9,8 @@ class ImagesViewModel @Inject constructor(private val repository: ImagesReposito
 
     fun getImages() {
 
-        repository.filterImageResponse()
+        repository.usingSubject()
+       // repository.filterImageResponse()
     }
 
     fun getNumbers() {

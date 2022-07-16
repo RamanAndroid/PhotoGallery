@@ -8,9 +8,14 @@ import dagger.hilt.android.scopes.ViewModelScoped
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.BackpressureOverflowStrategy
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.disposables.CompositeDisposable
-import io.reactivex.rxjava3.functions.BiFunction
+import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.subjects.AsyncSubject
+import io.reactivex.rxjava3.subjects.BehaviorSubject
+import io.reactivex.rxjava3.subjects.PublishSubject
+import io.reactivex.rxjava3.subjects.ReplaySubject
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -27,29 +32,22 @@ class ImagesRepository
      * А считываем уже полученные данные в AndroidSchedulers.mainThread()
      */
     fun getImagesObservable() {
-        compositeDisposable.add(
-            imagesApi
-                .getImagesObservable(1)
-                .doOnSubscribe {
-                    Log.d("doImagesOnSubscribe", "Request to the server")
+        val disposable = imagesApi
+            .getImagesObservable(1)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnSubscribe { Log.d("doImagesOnSubscribe", "Request to the server") }
+            .doFinally { Log.d("doImagesFinally", "Response received") }
+            .subscribe({ listResponse ->
+                listResponse.forEach {
+                    Log.d("SubscribeImagesResponse", it.toString())
                 }
-                .doFinally {
-                    Log.d("doImagesFinally", "Response received")
-                }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    { listResponse ->
-                        listResponse.forEach {
-                            Log.d("SubscribeImagesResponse", it.toString())
-                        }
-                    }, {
-                        Log.d("SubscribeImagesThrowable", it.localizedMessage ?: "Not error")
-                    }, {
-                        Log.d("SubscribeImagesComplete", "FunctionComplete")
-                    }
-                )
-        )
+            }, { error ->
+                Log.d("SubscribeImagesThrowable", error.localizedMessage ?: "Not error")
+            }, {
+                Log.d("SubscribeImagesComplete", "FunctionComplete")
+            })
+        compositeDisposable.add(disposable)
     }
 
     /*
@@ -116,20 +114,21 @@ class ImagesRepository
     }
 
     /*
-    Преображение ImageResponse в ImageSize с помощью метода flatMap
+    Преображение ImageResponse в ImageSize и выдает результат в виде Observable с помощью метода flatMap
+    Результат выдаётся с каким-то интервалом в зависимости от рандомного числа
     * */
     fun flatMapImageResponseToImageSize(): Observable<ImageResponse> {
         return getFakeObservableImages()
-            .subscribeOn(Schedulers.newThread())
+            .subscribeOn(Schedulers.io())
             .flatMap {
-                val delay = (0..10).random().toLong()
 
-                Observable.just(it).delay(delay, TimeUnit.SECONDS)
+                Observable.just(it).delay((0..10).random().toLong(), TimeUnit.SECONDS)
             }
     }
 
     /*
-    Преображение ImageResponse в ImageSize с помощью метода switchMap
+    Преображение ImageResponse в ImageSize и выдает результат в виде Observable с помощью метода switchMap
+    Результат выдаётся с каким-то интервалом в зависимости от рандомного числа
     * */
     fun switchMapImageResponseToImageSize(): Observable<ImageSize> {
         return getFakeObservableImages()
@@ -146,12 +145,13 @@ class ImagesRepository
     }
 
     /*
-    Преображение ImageResponse в ImageSize с помощью метода concatMap
+    Преображение ImageResponse в ImageSize и выдает результат в виде Observable с помощью метода concatMap
+    Результат выдаётся с каким-то интервалом в зависимости от рандомного числа
     * */
     fun concatMapImageResponseToImageSize(): Observable<ImageSize> {
         return getFakeObservableImages()
             .subscribeOn(Schedulers.io())
-            .switchMap {
+            .concatMap {
                 Observable.just(
                     ImageSize(
                         id = it.id,
@@ -163,7 +163,7 @@ class ImagesRepository
     }
 
     /*
-    * Соеденение двух Observable с помощью метода merge
+    * Соеденение двух выводов Observable с помощью метода merge
     * */
     fun mergeObservable() {
         compositeDisposable.add(
@@ -187,7 +187,7 @@ class ImagesRepository
     }
 
     /*
-    Умножение цифр с помощью метода map
+    Умножение с рандомными цифрами с помощью метода map
     * */
     fun getMultiplyNumbers() {
         compositeDisposable.add(
@@ -230,10 +230,13 @@ class ImagesRepository
         )
     }
 
+    /*
+    * вывод элементов, но из-за метода debounce придёт последний пришедший элемент за три секунды
+    *
+    * */
     fun getNumbersDebounce() {
         compositeDisposable.add(
             Observable.just(1, 2, 3, 4, 5)
-                .delay(1, TimeUnit.SECONDS)
                 .subscribeOn(Schedulers.newThread())
                 .scan { t1, t2 ->
                     t1 + t2
@@ -250,27 +253,34 @@ class ImagesRepository
         )
     }
 
+    /*
+    * вывод fake observable которые прошли условие в filter
+    * */
     fun filterImageResponse() {
-        compositeDisposable.add(getFakeObservableImages()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .filter { it.height > 1000 }
-            .doOnSubscribe {
-                Log.d("doImagesOnSubscribe", "Request to the server")
-            }
-            .doFinally {
-                Log.d("doImagesFinally", "Response received")
-            }
-            .subscribe({
-                Log.d("SubscribeNumbersResponse", it.toString())
-            }, {
-                Log.d("SubscribeNumbersThrowable", it.localizedMessage ?: "Not error")
-            }, {
-                Log.d("SubscribeNumbersComplete", "FunctionComplete")
-            })
+        compositeDisposable.add(
+            getFakeObservableImages()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .filter { it.height > 1000 }
+                .doOnSubscribe {
+                    Log.d("doImagesOnSubscribe", "Request to the server")
+                }
+                .doFinally {
+                    Log.d("doImagesFinally", "Response received")
+                }
+                .subscribe({
+                    Log.d("SubscribeNumbersResponse", it.toString())
+                }, {
+                    Log.d("SubscribeNumbersThrowable", it.localizedMessage ?: "Not error")
+                }, {
+                    Log.d("SubscribeNumbersComplete", "FunctionComplete")
+                })
         )
     }
 
+    /*
+    * выводяться только неповторящиеся элементы  fake observables через проверку hashCode и equals
+    * */
     fun distinctImageResponse() {
         compositeDisposable.add(
             getFakeObservableImages()
@@ -293,6 +303,9 @@ class ImagesRepository
         )
     }
 
+    /*
+    * Из-за метода take берёт только первые три элемента из пришедших fake observables
+    * */
     fun takeImageResponse() {
         compositeDisposable.add(
             getFakeObservableImages()
@@ -335,63 +348,137 @@ class ImagesRepository
             })
     }
 
+    fun getPublishSubject(): PublishSubject<ImageResponse> {
+        return PublishSubject.create()
+    }
+
+    fun getReplaySubject(): ReplaySubject<ImageResponse> {
+        return ReplaySubject.create()
+    }
+
+    fun getBehaviorSubject(): BehaviorSubject<ImageResponse> {
+        return BehaviorSubject.create()
+    }
+    fun getAsyncSubject(): AsyncSubject<ImageResponse> {
+        return AsyncSubject.create()
+    }
+
+    fun getFirstObserver(): Observer<ImageResponse> {
+        return object : Observer<ImageResponse> {
+            override fun onSubscribe(d: Disposable) {
+                Log.d("SubjectFirst", "onSubscribe")
+            }
+
+            override fun onNext(t: ImageResponse) {
+                Log.d("SubjectFirst", "onNext")
+                Log.d("SubjectFirst", t.toString())
+            }
+
+            override fun onError(e: Throwable) {
+                Log.d("SubjectFirst", "onError")
+                Log.d("SubjectFirst", e.toString())
+            }
+
+            override fun onComplete() {
+                Log.d("SubjectFirst", "onComplete")
+            }
+
+        }
+    }
+
+    fun getSecondObserver(): Observer<ImageResponse> {
+        return object : Observer<ImageResponse> {
+            override fun onSubscribe(d: Disposable) {
+                Log.d("SubjectSecond", "onSubscribe")
+            }
+
+            override fun onNext(t: ImageResponse) {
+                Log.d("SubjectSecond", "onNext")
+                Log.d("SubjectSecond", t.toString())
+            }
+
+            override fun onError(e: Throwable) {
+                Log.d("SubjectSecond", "onError")
+                Log.d("SubjectSecond", e.toString())
+            }
+
+            override fun onComplete() {
+                Log.d("SubjectSecond", "onComplete")
+            }
+
+        }
+    }
+
+    fun usingSubject() {
+        val subject = getBehaviorSubject()
+        val observable = flatMapImageResponseToImageSize()
+        val observerFirst = getFirstObserver()
+        val observerSecond = getSecondObserver()
+
+        subject.subscribe(observerFirst)
+
+        subject.onNext(
+            ImageResponse(
+                id = "123123",
+                author = "Aloha",
+                downloadUrl = "https://picsum.photos/id/0/5616/3744",
+                url = "https://unsplash.com/photos/yC-Yzbqy7PY",
+                height = 200,
+                width = 14000
+            )
+        )
+
+        subject.onNext(
+            ImageResponse(
+                id = "99",
+                author = "Demian",
+                downloadUrl = "https://picsum.photos/id/0/5616/3744",
+                url = "https://unsplash.com/photos/yC-Yzbqy7PY",
+                height = 200,
+                width = 333
+            )
+        )
+
+        subject.onNext(
+            ImageResponse(
+                id = "242525",
+                author = "Privet",
+                downloadUrl = "https://picsum.photos/id/0/5616/3744",
+                url = "https://unsplash.com/photos/yC-Yzbqy7PY",
+                height = 14000,
+                width = 14000
+            )
+        )
+
+        observable
+            .subscribe({
+                Log.d("ImageResponse", it.toString())
+                subject.onNext(it)
+            }, {
+                subject.onError(it)
+            },{
+                subject.onComplete()
+            })
+
+        subject.subscribe(observerSecond)
+
+        subject.onNext(
+            ImageResponse(
+                id = "Hello There",
+                author = "Victory Vivaldi",
+                downloadUrl = "https://picsum.photos/id/0/5616/3744",
+                url = "https://unsplash.com/photos/yC-Yzbqy7PY",
+                height = 666,
+                width = 616
+            )
+        )
+        subject.onError(Throwable("И тут бац!!!"))
+    }
+
     fun clearedCompositeDisposable() {
         if (!compositeDisposable.isDisposed) {
             compositeDisposable.dispose()
             compositeDisposable.clear()
         }
-    }
-
-    fun getFakeObservableImages(): Observable<ImageResponse> {
-        return Observable.just(
-            ImageResponse(
-                id = "0",
-                author = "Alejandro Escamilla",
-                downloadUrl = "https://picsum.photos/id/0/5616/3744",
-                url = "https://unsplash.com/photos/yC-Yzbqy7PY",
-                height = 3744,
-                width = 616
-            ),
-            ImageResponse(
-                id = "1",
-                author = "Alejandro Escamilla",
-                downloadUrl = "https://picsum.photos/id/0/5616/3744",
-                url = "https://unsplash.com/photos/yC-Yzbqy7PY",
-                height = 374,
-                width = 5616
-            ),
-            ImageResponse(
-                id = "2",
-                author = "Alejandro Escamilla",
-                downloadUrl = "https://picsum.photos/id/0/5616/3744",
-                url = "https://unsplash.com/photos/yC-Yzbqy7PY",
-                height = 3744,
-                width = 616
-            ),
-            ImageResponse(
-                id = "3",
-                author = "Alejandro Escamilla",
-                downloadUrl = "https://picsum.photos/id/0/5616/3744",
-                url = "https://unsplash.com/photos/yC-Yzbqy7PY",
-                height = 374,
-                width = 5616
-            ),
-            ImageResponse(
-                id = "4",
-                author = "Alejandro Escamilla",
-                downloadUrl = "https://picsum.photos/id/0/5616/3744",
-                url = "https://unsplash.com/photos/yC-Yzbqy7PY",
-                height = 744,
-                width = 566
-            ),
-            ImageResponse(
-                id = "5",
-                author = "Alejandro Escamilla",
-                downloadUrl = "https://picsum.photos/id/0/5616/3744",
-                url = "https://unsplash.com/photos/yC-Yzbqy7PY",
-                height = 744,
-                width = 561
-            ),
-        )
     }
 }
