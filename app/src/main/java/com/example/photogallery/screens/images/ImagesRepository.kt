@@ -38,15 +38,19 @@ class ImagesRepository
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSubscribe { Log.d("doImagesOnSubscribe", "Request to the server") }
             .doFinally { Log.d("doImagesFinally", "Response received") }
-            .subscribe({ listResponse ->
-                listResponse.forEach {
-                    Log.d("SubscribeImagesResponse", it.toString())
+            .subscribe(
+                { listResponse ->
+                    listResponse.forEach {
+                        Log.d("SubscribeImagesResponse", it.toString())
+                    }
+                },
+                { error ->
+                    Log.d("SubscribeImagesThrowable", error.localizedMessage ?: "Not error")
+                },
+                {
+                    Log.d("SubscribeImagesComplete", "FunctionComplete")
                 }
-            }, { error ->
-                Log.d("SubscribeImagesThrowable", error.localizedMessage ?: "Not error")
-            }, {
-                Log.d("SubscribeImagesComplete", "FunctionComplete")
-            })
+            )
         compositeDisposable.add(disposable)
     }
 
@@ -58,34 +62,35 @@ class ImagesRepository
     * */
 
     fun getImagesFlowable() {
-        compositeDisposable.add(
-            imagesApi
-                .getImagesFlowable(1)
-                .onBackpressureBuffer(
-                    1024,
-                    { Log.d("onBackpressureError", "onBackpressureError") },
-                    BackpressureOverflowStrategy.DROP_LATEST
-                )
-                .doOnSubscribe {
-                    Log.d("doImagesOnSubscribe", "Request to the server")
-                }
-                .doFinally {
-                    Log.d("doImagesFinally", "Response received")
-                }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    { listResponse ->
-                        listResponse.forEach {
-                            Log.d("SubscribeImagesResponse", it.toString())
-                        }
-                    }, {
-                        Log.d("SubscribeImagesThrowable", it.localizedMessage ?: "Not error")
-                    }, {
-                        Log.d("SubscribeImagesComplete", "FunctionComplete")
+        val disposable = imagesApi
+            .getImagesFlowable(1)
+            .onBackpressureBuffer(
+                1024,
+                { Log.d("onBackpressureError", "onBackpressureError") },
+                BackpressureOverflowStrategy.DROP_LATEST
+            )
+            .doOnSubscribe {
+                Log.d("doImagesOnSubscribe", "Request to the server")
+            }
+            .doFinally {
+                Log.d("doImagesFinally", "Response received")
+            }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { listResponse ->
+                    listResponse.forEach {
+                        Log.d("SubscribeImagesResponse", it.toString())
                     }
-                )
-        )
+                },
+                {
+                    Log.d("SubscribeImagesThrowable", it.localizedMessage ?: "Not error")
+                },
+                {
+                    Log.d("SubscribeImagesComplete", "FunctionComplete")
+                }
+            )
+        compositeDisposable.add(disposable)
     }
 
     /*
@@ -94,23 +99,25 @@ class ImagesRepository
    * А считываем уже полученные данные в AndroidSchedulers.mainThread()
    * */
     fun getImageSingle() {
-        compositeDisposable.add(
-            imagesApi
-                .getImagesSingle()
-                .subscribeOn(Schedulers.single())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe {
-                    Log.d("doImageOnSubscribe", "Request to the server")
-                }
-                .doFinally {
-                    Log.d("doImageFinally", "Response received")
-                }
-                .subscribe({ image ->
+        val disposable = imagesApi
+            .getImagesSingle()
+            .subscribeOn(Schedulers.single())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnSubscribe {
+                Log.d("doImageOnSubscribe", "Request to the server")
+            }
+            .doFinally {
+                Log.d("doImageFinally", "Response received")
+            }
+            .subscribe(
+                { image ->
                     Log.d("SubscribeImageResponse", image.toString())
-                }, {
+                },
+                {
                     Log.d("SubscribeImageThrowable", it.localizedMessage ?: "Not error")
-                })
-        )
+                }
+            )
+        compositeDisposable.add(disposable)
     }
 
     /*
@@ -121,7 +128,6 @@ class ImagesRepository
         return getFakeObservableImages()
             .subscribeOn(Schedulers.io())
             .flatMap {
-
                 Observable.just(it).delay((0..10).random().toLong(), TimeUnit.SECONDS)
             }
     }
@@ -166,68 +172,77 @@ class ImagesRepository
     * Соеденение двух выводов Observable с помощью метода merge
     * */
     fun mergeObservable() {
-        compositeDisposable.add(
-            Observable
-                .merge(
-                    listOf(
-                        switchMapImageResponseToImageSize(),
-                        concatMapImageResponseToImageSize()
-                    )
+        val disposable = Observable
+            .merge(
+                listOf(
+                    switchMapImageResponseToImageSize(),
+                    concatMapImageResponseToImageSize()
                 )
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
+            )
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                {
                     Log.d("SubscribeImagesResponse", it.toString())
-                }, {
+                },
+                {
                     Log.d("SubscribeImagesThrowable", it.localizedMessage ?: "Not error")
-                }, {
+                },
+                {
                     Log.d("SubscribeImagesComplete", "FunctionComplete")
-                })
-        )
+                }
+            )
+        compositeDisposable.add(disposable)
     }
 
     /*
     Умножение с рандомными цифрами с помощью метода map
     * */
     fun getMultiplyNumbers() {
-        compositeDisposable.add(
-            Observable.just(1, 2, 3, 4, 5)
-                .delay(10, TimeUnit.SECONDS)
-                .subscribeOn(Schedulers.newThread())
-                .map {
-                    it * (0..100).random()
-                }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
+        val disposable = Observable.just(1, 2, 3, 4, 5)
+            .delay(10, TimeUnit.SECONDS)
+            .subscribeOn(Schedulers.newThread())
+            .map {
+                it * (0..100).random()
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                {
                     Log.d("SubscribeNumbersResponse", it.toString())
-                }, {
+                },
+                {
                     Log.d("SubscribeNumbersThrowable", it.localizedMessage ?: "Not error")
-                }, {
+                },
+                {
                     Log.d("SubscribeNumbersComplete", "FunctionComplete")
-                })
-        )
+                }
+            )
+        compositeDisposable.add(disposable)
     }
 
     /*
     *Сложение чисел с помощью scan
     *  */
     fun getConcatenationNumbers() {
-        compositeDisposable.add(
-            Observable.just(1, 2, 3, 4, 5)
-                .delay(10, TimeUnit.SECONDS)
-                .subscribeOn(Schedulers.newThread())
-                .scan { t1, t2 ->
-                    t1 + t2
-                }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
+        val disposable = Observable.just(1, 2, 3, 4, 5)
+            .delay(10, TimeUnit.SECONDS)
+            .subscribeOn(Schedulers.newThread())
+            .scan { t1, t2 ->
+                t1 + t2
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                {
                     Log.d("SubscribeNumbersResponse", it.toString())
-                }, {
+                },
+                {
                     Log.d("SubscribeNumbersThrowable", it.localizedMessage ?: "Not error")
-                }, {
+                },
+                {
                     Log.d("SubscribeNumbersComplete", "FunctionComplete")
-                })
-        )
+                }
+            )
+        compositeDisposable.add(disposable)
     }
 
     /*
@@ -235,117 +250,127 @@ class ImagesRepository
     *
     * */
     fun getNumbersDebounce() {
-        compositeDisposable.add(
-            Observable.just(1, 2, 3, 4, 5)
-                .subscribeOn(Schedulers.newThread())
-                .scan { t1, t2 ->
-                    t1 + t2
-                }
-                .debounce(3, TimeUnit.SECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
+        val disposable = Observable.just(1, 2, 3, 4, 5)
+            .subscribeOn(Schedulers.newThread())
+            .scan { t1, t2 ->
+                t1 + t2
+            }
+            .debounce(3, TimeUnit.SECONDS)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                {
                     Log.d("SubscribeNumbersResponse", it.toString())
-                }, {
+                },
+                {
                     Log.d("SubscribeNumbersThrowable", it.localizedMessage ?: "Not error")
-                }, {
+                },
+                {
                     Log.d("SubscribeNumbersComplete", "FunctionComplete")
-                })
-        )
+                }
+            )
+        compositeDisposable.add(disposable)
     }
 
     /*
     * вывод fake observable которые прошли условие в filter
     * */
     fun filterImageResponse() {
-        compositeDisposable.add(
-            getFakeObservableImages()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .filter { it.height > 1000 }
-                .doOnSubscribe {
-                    Log.d("doImagesOnSubscribe", "Request to the server")
-                }
-                .doFinally {
-                    Log.d("doImagesFinally", "Response received")
-                }
-                .subscribe({
+        val disposable = getFakeObservableImages()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .filter { it.height > 1000 }
+            .doOnSubscribe {
+                Log.d("doImagesOnSubscribe", "Request to the server")
+            }
+            .doFinally {
+                Log.d("doImagesFinally", "Response received")
+            }
+            .subscribe(
+                {
                     Log.d("SubscribeNumbersResponse", it.toString())
-                }, {
+                },
+                {
                     Log.d("SubscribeNumbersThrowable", it.localizedMessage ?: "Not error")
-                }, {
+                },
+                {
                     Log.d("SubscribeNumbersComplete", "FunctionComplete")
-                })
-        )
+                }
+            )
+        compositeDisposable.add(disposable)
     }
 
     /*
     * выводяться только неповторящиеся элементы  fake observables через проверку hashCode и equals
     * */
     fun distinctImageResponse() {
-        compositeDisposable.add(
-            getFakeObservableImages()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .distinct()
-                .doOnSubscribe {
-                    Log.d("doImagesOnSubscribe", "Request to the server")
-                }
-                .doFinally {
-                    Log.d("doImagesFinally", "Response received")
-                }
-                .subscribe({
+        val disposable = getFakeObservableImages()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .distinct()
+            .doOnSubscribe { Log.d("doImagesOnSubscribe", "Request to the server") }
+            .doFinally { Log.d("doImagesFinally", "Response received") }
+            .subscribe(
+                {
                     Log.d("SubscribeNumbersResponse", it.toString())
-                }, {
+                },
+                {
                     Log.d("SubscribeNumbersThrowable", it.localizedMessage ?: "Not error")
-                }, {
+                },
+                {
                     Log.d("SubscribeNumbersComplete", "FunctionComplete")
-                })
-        )
+                }
+            )
+        compositeDisposable.add(disposable)
     }
 
     /*
     * Из-за метода take берёт только первые три элемента из пришедших fake observables
     * */
     fun takeImageResponse() {
-        compositeDisposable.add(
-            getFakeObservableImages()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .take(3)
-                .doOnSubscribe {
-                    Log.d("doImagesOnSubscribe", "Request to the server")
-                }
-                .doFinally {
-                    Log.d("doImagesFinally", "Response received")
-                }
-                .subscribe({
+        val disposable = getFakeObservableImages()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .take(3)
+            .takeLast(3)
+            .doOnSubscribe { Log.d("doImagesOnSubscribe", "Request to the server") }
+            .doFinally { Log.d("doImagesFinally", "Response received") }
+            .subscribe(
+                {
                     Log.d("SubscribeNumbersResponse", it.toString())
-                }, {
+                },
+                {
                     Log.d("SubscribeNumbersThrowable", it.localizedMessage ?: "Not error")
-                }, {
+                },
+                {
                     Log.d("SubscribeNumbersComplete", "FunctionComplete")
-                })
-        )
+                }
+            )
+        compositeDisposable.add(disposable)
     }
 
     /*
    * Соеденение двух Observable с помощью метода zip
    * */
     fun zipWithObservable() {
-        concatMapImageResponseToImageSize()
+        val disposable = concatMapImageResponseToImageSize()
             .zipWith(switchMapImageResponseToImageSize())
             { t1, t2 ->
                 t1.width + t2.width
             }
             .observeOn(Schedulers.io())
             .subscribeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                Log.d("SubscribeNumbersResponse", it.toString())
-            }, {
-                Log.d("SubscribeNumbersThrowable", it.localizedMessage ?: "Not error")
-            }, {
-                Log.d("SubscribeNumbersComplete", "FunctionComplete")
-            })
+            .subscribe(
+                {
+                    Log.d("SubscribeNumbersResponse", it.toString())
+                },
+                {
+                    Log.d("SubscribeNumbersThrowable", it.localizedMessage ?: "Not error")
+                },
+                {
+                    Log.d("SubscribeNumbersComplete", "FunctionComplete")
+                }
+            )
+        compositeDisposable.add(disposable)
     }
 
     fun getPublishSubject(): PublishSubject<ImageResponse> {
@@ -359,6 +384,7 @@ class ImagesRepository
     fun getBehaviorSubject(): BehaviorSubject<ImageResponse> {
         return BehaviorSubject.create()
     }
+
     fun getAsyncSubject(): AsyncSubject<ImageResponse> {
         return AsyncSubject.create()
     }
@@ -450,15 +476,16 @@ class ImagesRepository
             )
         )
 
-        observable
+        val disposable = observable
             .subscribe({
                 Log.d("ImageResponse", it.toString())
                 subject.onNext(it)
             }, {
                 subject.onError(it)
-            },{
+            }, {
                 subject.onComplete()
             })
+        compositeDisposable.add(disposable)
 
         subject.subscribe(observerSecond)
 
@@ -472,7 +499,6 @@ class ImagesRepository
                 width = 616
             )
         )
-        subject.onError(Throwable("И тут бац!!!"))
     }
 
     fun clearedCompositeDisposable() {
