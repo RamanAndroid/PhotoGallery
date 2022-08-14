@@ -79,4 +79,7 @@ dependencies {
     //OkHttp
     implementation "com.squareup.okhttp3:okhttp:4.10.0"
     implementation "com.squareup.okhttp3:logging-interceptor:4.10.0"
+
+    //Paging 3
+    implementation "androidx.paging:paging-compose:1.0.0-alpha02"
 }
