@@ -23,4 +23,10 @@ interface ImagesApi {
 
     @GET("600/1000?random=1")
     fun getImagesSingle(): Single<ImageResponse>
+
+    @GET("v2/list")
+    suspend fun getImages(
+        @Query("page")
+        page: Int
+    ): List<ImageResponse>
 }
