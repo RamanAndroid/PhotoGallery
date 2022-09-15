@@ -10,7 +10,9 @@ import java.io.IOException
 import javax.inject.Inject
 
 @ViewModelScoped
-class ImagePagingSource @Inject constructor(private val imagesApi: ImagesApi) : PagingSource<Int, ImageResponse>() {
+class ImagePagingSource @Inject constructor(
+    private val imagesApi: ImagesApi
+) : PagingSource<Int, ImageResponse>() {
 
     companion object {
         private const val DEFAULT_PAGE_NUMBER = 1
@@ -39,5 +41,4 @@ class ImagePagingSource @Inject constructor(private val imagesApi: ImagesApi) : 
         } catch (exception: HttpException) {
             LoadResult.Error(exception)
         }
-
 }
