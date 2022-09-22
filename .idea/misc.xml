@@ -5,6 +5,10 @@
       <map>
         <entry key="..\:/Users/Raman/AndroidStudioProjects/PhotoGallery/app/src/main/res/drawable/ic_photo_24.xml" value="0.366" />
         <entry key="..\:/Users/Raman/AndroidStudioProjects/PhotoGallery/app/src/main/res/drawable/ic_settings_24.xml" value="0.301" />
+        <entry key="app/src/main/res/drawable/ic_pause_circle_24.xml" value="0.3795" />
+        <entry key="app/src/main/res/drawable/ic_play_circle_24.xml" value="0.3795" />
+        <entry key="app/src/main/res/drawable/ic_queue_music_24.xml" value="0.3795" />
+        <entry key="app/src/main/res/drawable/ic_stop_circle_24.xml" value="0.3795" />
       </map>
     </option>
   </component>
