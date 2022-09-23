@@ -6,7 +6,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.lifecycle.Lifecycle
@@ -33,9 +33,6 @@ class MainActivity : ComponentActivity() {
         super.onResume()
 
         bindService()
-        if (isBound) {
-            Log.d("timeMusic", "${boundedService.getCurrentPositionSong()}")
-        }
     }
 
     override fun onPause() {
@@ -62,6 +59,12 @@ class MainActivity : ComponentActivity() {
             val binder = service as PlayerService.ServiceBinder
             boundedService = binder.getService()
             isBound = true
+
+            Toast.makeText(
+                this@MainActivity,
+                "Проигранно музыки: ${boundedService.timePlayMusic()}",
+                Toast.LENGTH_LONG
+            ).show()
         }
 
         override fun onServiceDisconnected(name: ComponentName) {

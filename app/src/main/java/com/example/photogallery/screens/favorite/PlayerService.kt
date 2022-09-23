@@ -5,9 +5,9 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Binder
 import android.os.IBinder
-import android.os.PowerManager
 import android.util.Log
 import com.example.photogallery.R
+import java.util.concurrent.TimeUnit
 
 class PlayerService : Service() {
 
@@ -22,6 +22,7 @@ class PlayerService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder {
+        Log.d("hello","onBind")
         return serviceBinder
     }
 
@@ -43,8 +44,8 @@ class PlayerService : Service() {
     }
 
     fun startMusic() {
-        if(player == null){
-            player = MediaPlayer.create(this,song)
+        if (player == null) {
+            player = MediaPlayer.create(this, song)
         }
         player?.start()
     }
@@ -60,5 +61,14 @@ class PlayerService : Service() {
         player?.pause()
     }
 
-    fun getCurrentPositionSong() = player?.currentPosition ?: 0
+    private fun getCurrentPositionSong() = player?.currentPosition?.toLong() ?: 0L
+
+    fun timePlayMusic(): String {
+        val minutes: Long =
+            TimeUnit.MINUTES.convert(getCurrentPositionSong(), TimeUnit.MILLISECONDS)
+        val seconds: Long =
+            (TimeUnit.SECONDS.convert(getCurrentPositionSong(), TimeUnit.MILLISECONDS)
+                    - minutes * TimeUnit.SECONDS.convert(1, TimeUnit.MINUTES))
+        return String.format("%02d:%02d", minutes, seconds)
+    }
 }

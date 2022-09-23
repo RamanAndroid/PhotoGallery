@@ -15,7 +15,12 @@ class IntentService(
     @Deprecated("Deprecated in Java")
     override fun onHandleIntent(intent: Intent?) {
         if(intent != null){
-            Log.d("IntentService","${intent.getStringExtra(DATA_NAME)}")
+            if(intent.getStringExtra(DATA_NAME) != null){
+                //FIXME: Ахтунг опасно если пару раз выйти с экрана может крашнуть
+//                while (true){
+//                    Log.d("IntentService","${intent.getStringExtra(DATA_NAME)}")
+//                }
+            }
         }
     }
 }

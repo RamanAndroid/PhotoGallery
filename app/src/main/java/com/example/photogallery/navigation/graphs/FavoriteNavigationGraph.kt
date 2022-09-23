@@ -5,7 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.example.photogallery.navigation.PhotoGalleryNavigationDestination
-import com.example.photogallery.screens.FavoriteImagesScreen
+import com.example.photogallery.screens.favorite.FavoriteImagesScreen
 
 object FavoriteImagesDestination : PhotoGalleryNavigationDestination {
     override val route: String = "favorite_route"
