@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -49,9 +50,7 @@ class MainActivity : ComponentActivity() {
 
         if (isBound) {
             unbindService(connectBoundService)
-            stopService(Intent(this, PlayerService::class.java))
         }
-
     }
 
     private val connectBoundService = object : ServiceConnection {
@@ -82,6 +81,5 @@ class MainActivity : ComponentActivity() {
     private fun bindService() {
         val intent = Intent(this, PlayerService::class.java)
         bindService(intent, connectBoundService, Context.BIND_AUTO_CREATE)
-        startService(intent)
     }
 }

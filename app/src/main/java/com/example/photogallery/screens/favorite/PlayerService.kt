@@ -22,25 +22,23 @@ class PlayerService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder {
-        Log.d("hello","onBind")
         return serviceBinder
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
         player?.apply {
-            stop()
-            release()
+            pause()
         }
         return super.onUnbind(intent)
     }
 
     override fun onDestroy() {
-        super.onDestroy()
-
         player?.stop()
         player?.reset()
         player?.release()
         player = null
+
+        super.onDestroy()
     }
 
     fun startMusic() {
@@ -52,7 +50,6 @@ class PlayerService : Service() {
 
     fun stopMusic() {
         player?.apply {
-            release()
             stop()
         }
     }
