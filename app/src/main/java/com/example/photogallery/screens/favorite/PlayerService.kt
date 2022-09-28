@@ -29,6 +29,7 @@ class PlayerService : Service() {
         player?.apply {
             pause()
         }
+        Log.d("lifecycle","Service onUnbind")
         return super.onUnbind(intent)
     }
 
@@ -37,7 +38,7 @@ class PlayerService : Service() {
         player?.reset()
         player?.release()
         player = null
-
+        Log.d("lifecycle","Service onDestroy")
         super.onDestroy()
     }
 

@@ -38,25 +38,19 @@ class PlayerActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
 
+        Log.d("lifecycle","Player Activity onResume")
         bindService()
     }
 
-    override fun onPause() {
-        super.onPause()
-
-        if (isBound) {
-            unbindService(connectBoundService)
-            isBound = false
-        }
-    }
-
     override fun onDestroy() {
-        super.onDestroy()
-
+        Log.d("lifecycle","Player Activity onDestroy")
+        Log.d("lifecycle","Player Activity isBound = $isBound")
         if (isBound) {
             unbindService(connectBoundService)
+            stopService(Intent(this, PlayerService::class.java))
         }
-        stopService(Intent(this, PlayerService::class.java))
+
+        super.onDestroy()
     }
 
     private val connectBoundService = object : ServiceConnection {

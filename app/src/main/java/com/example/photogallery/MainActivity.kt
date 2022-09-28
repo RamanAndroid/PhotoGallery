@@ -33,21 +33,21 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
 
+        Log.d("lifecycle","Main Activity onResume")
         bindService()
-    }
-
-    override fun onPause() {
-        super.onPause()
-
-        if (isBound) {
-            unbindService(connectBoundService)
-            isBound = false
+        if(isBound){
+            Toast.makeText(
+                this@MainActivity,
+                "Проигранно музыки: ${boundedService.timePlayMusic()}",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
+        Log.d("lifecycle","Main Activity onDestroy")
         if (isBound) {
             unbindService(connectBoundService)
         }
@@ -58,12 +58,6 @@ class MainActivity : ComponentActivity() {
             val binder = service as PlayerService.ServiceBinder
             boundedService = binder.getService()
             isBound = true
-
-            Toast.makeText(
-                this@MainActivity,
-                "Проигранно музыки: ${boundedService.timePlayMusic()}",
-                Toast.LENGTH_LONG
-            ).show()
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
