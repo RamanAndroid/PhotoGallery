@@ -26,19 +26,21 @@ class PlayerService : Service() {
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
+        Log.d("lifecycle", "Service onUnbind")
         player?.apply {
             pause()
         }
-        Log.d("lifecycle","Service onUnbind")
+
         return super.onUnbind(intent)
     }
 
     override fun onDestroy() {
+        Log.d("lifecycle", "Service onDestroy")
         player?.stop()
         player?.reset()
         player?.release()
         player = null
-        Log.d("lifecycle","Service onDestroy")
+
         super.onDestroy()
     }
 

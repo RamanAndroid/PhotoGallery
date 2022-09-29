@@ -33,9 +33,9 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
 
-        Log.d("lifecycle","Main Activity onResume")
+        Log.d("lifecycle", "Main Activity onResume")
         bindService()
-        if(isBound){
+        if (isBound) {
             Toast.makeText(
                 this@MainActivity,
                 "Проигранно музыки: ${boundedService.timePlayMusic()}",
@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
 
-        Log.d("lifecycle","Main Activity onDestroy")
+        Log.d("lifecycle", "Main Activity onDestroy")
         if (isBound) {
             unbindService(connectBoundService)
         }
