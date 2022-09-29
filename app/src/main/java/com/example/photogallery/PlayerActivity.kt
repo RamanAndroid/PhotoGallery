@@ -6,15 +6,17 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -38,13 +40,10 @@ class PlayerActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
 
-        Log.d("lifecycle", "Player Activity onResume")
         bindService()
     }
 
     override fun onDestroy() {
-        Log.d("lifecycle", "Player Activity onDestroy")
-        Log.d("lifecycle", "Player Activity isBound = $isBound")
         if (isBound) {
             unbindService(connectBoundService)
         }
@@ -79,8 +78,7 @@ class PlayerActivity : ComponentActivity() {
 
 @Composable
 fun Player() {
-    val context = LocalContext.current
-    val activity = context as PlayerActivity
+    val activity = LocalContext.current as PlayerActivity
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -95,6 +93,18 @@ fun Player() {
             alignment = Alignment.Center
         )
 
+        Button(
+            onClick = {
+                activity.startActivity(
+                    Intent(
+                        activity, MainActivity::class.java
+                    )
+                )
+            }
+        ) {
+            Text("Main Activity", color = Color.White)
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly
         ) {
@@ -102,6 +112,7 @@ fun Player() {
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
+                        activity.startService(Intent(activity, PlayerService::class.java))
                         activity.playerService.startMusic()
                     },
                 painter = painterResource(R.drawable.ic_play_circle_24),
@@ -120,6 +131,7 @@ fun Player() {
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
+                        activity.stopService(Intent(activity, PlayerService::class.java))
                         activity.playerService.stopMusic()
                     },
                 painter = painterResource(R.drawable.ic_stop_circle_24),

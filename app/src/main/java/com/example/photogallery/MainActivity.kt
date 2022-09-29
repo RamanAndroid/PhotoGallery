@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,21 +32,12 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
 
-        Log.d("lifecycle", "Main Activity onResume")
         bindService()
-        if (isBound) {
-            Toast.makeText(
-                this@MainActivity,
-                "Проигранно музыки: ${boundedService.timePlayMusic()}",
-                Toast.LENGTH_LONG
-            ).show()
-        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
-        Log.d("lifecycle", "Main Activity onDestroy")
         if (isBound) {
             unbindService(connectBoundService)
         }
@@ -58,6 +48,14 @@ class MainActivity : ComponentActivity() {
             val binder = service as PlayerService.ServiceBinder
             boundedService = binder.getService()
             isBound = true
+
+            boundedService.getCurrentPositionSong()?.let {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Проигранно музыки: ${boundedService.timePlayMusic(it)}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
 
         override fun onServiceDisconnected(name: ComponentName) {

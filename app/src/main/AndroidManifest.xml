@@ -18,6 +18,11 @@
         android:theme="@style/Theme.PhotoGallery"
         tools:targetApi="31">
         <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:label="@string/title_activity_second"
+            android:theme="@style/Theme.PhotoGallery" />
+        <activity
             android:name=".PlayerActivity"
             android:exported="false"
             android:label="@string/title_activity_player"
@@ -27,7 +32,7 @@
         <service android:name=".screens.favorite.IntentService" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".SecondActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.PhotoGallery">
