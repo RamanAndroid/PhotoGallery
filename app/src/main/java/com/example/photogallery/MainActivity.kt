@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -48,6 +49,8 @@ class MainActivity : ComponentActivity() {
             val binder = service as PlayerService.ServiceBinder
             boundedService = binder.getService()
             isBound = true
+
+            Log.d("playerService","on service connected object = ${boundedService}")
 
             boundedService.getCurrentPositionSong()?.let {
                 Toast.makeText(

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -55,6 +56,9 @@ class PlayerActivity : ComponentActivity() {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as PlayerService.ServiceBinder
             playerService = binder.getService()
+
+            Log.d("playerService","on service connected object = ${playerService}")
+
             isBound = true
         }
 
