@@ -29,6 +29,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import coil.compose.rememberAsyncImagePainter
+import com.example.photogallery.MainActivity
 import com.example.photogallery.R
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -37,16 +38,16 @@ fun FavoriteImagesScreen(
     viewModel: FavoriteImagesViewModel = hiltViewModel()
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
-    val context = LocalContext.current
-    val text = remember { mutableStateOf(context.getString(R.string.no_internet_connection)) }
+    val activity = LocalContext.current as MainActivity
+    val text = remember { mutableStateOf(activity.getString(R.string.no_internet_connection)) }
     val images = viewModel.images.collectAsLazyPagingItems()
     val color = remember { mutableStateOf(Color.Yellow) }
 
     viewModel.internetState.observe(lifecycleOwner) {
         if (it) {
-            text.value = context.getString(R.string.yes_internet_connection)
+            text.value = activity.getString(R.string.yes_internet_connection)
         } else {
-            text.value = context.getString(R.string.no_internet_connection)
+            text.value = activity.getString(R.string.no_internet_connection)
             images.retry()
         }
     }
@@ -57,12 +58,16 @@ fun FavoriteImagesScreen(
                 Event.ON_CREATE -> {
                     viewModel.networkStateReceiver()
                 }
+                Event.ON_RESUME -> {
+                    activity.bindService()
+                }
                 Event.ON_PAUSE -> {
-                    val intent = Intent(context, IntentService::class.java).apply {
+                    val intent = Intent(activity, IntentService::class.java).apply {
                         putExtra(IntentService.DATA_NAME, "Essential information")
                     }
 
-                    context.startService(intent)
+                    activity.unbindService()
+                    activity.startService(intent)
                 }
                 else -> {}
             }
@@ -73,7 +78,6 @@ fun FavoriteImagesScreen(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         stickyHeader {
