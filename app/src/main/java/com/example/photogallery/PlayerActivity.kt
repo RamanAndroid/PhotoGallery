@@ -31,6 +31,14 @@ class PlayerActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+
+        Intent(this, PlayerService::class.java).apply {
+            this@PlayerActivity.startService(this)
+        }
+    }
 }
 
 @Composable
@@ -66,9 +74,10 @@ fun Player() {
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
-                        Intent(activity, PlayerService::class.java).apply {
-                            this.putExtra(PlayerService.PLAYER_STATE, PlayerState.START.name)
-                            activity.startService(this)
+                        Intent().apply {
+                            action = PlayerService.PLAYER_BROADCAST_RECEIVER
+                            putExtra(PlayerService.PLAYER_STATE, PlayerState.START.name)
+                            activity.sendBroadcast(this)
                         }
                     },
                 painter = painterResource(R.drawable.ic_play_circle_24),
@@ -78,9 +87,10 @@ fun Player() {
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
-                        Intent(activity, PlayerService::class.java).apply {
-                            this.putExtra(PlayerService.PLAYER_STATE, PlayerState.PAUSE.name)
-                            activity.startService(this)
+                        Intent().apply {
+                            action = PlayerService.PLAYER_BROADCAST_RECEIVER
+                            putExtra(PlayerService.PLAYER_STATE, PlayerState.PAUSE.name)
+                            activity.sendBroadcast(this)
                         }
                     },
                 painter = painterResource(R.drawable.ic_pause_circle_24),
@@ -90,9 +100,10 @@ fun Player() {
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
-                        Intent(activity, PlayerService::class.java).apply {
-                            this.putExtra(PlayerService.PLAYER_STATE, PlayerState.STOP.name)
-                            activity.startService(this)
+                        Intent().apply {
+                            action = PlayerService.PLAYER_BROADCAST_RECEIVER
+                            putExtra(PlayerService.PLAYER_STATE, PlayerState.STOP.name)
+                            activity.sendBroadcast(this)
                         }
                     },
                 painter = painterResource(R.drawable.ic_stop_circle_24),

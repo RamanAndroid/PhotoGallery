@@ -1,10 +1,14 @@
 package com.example.photogallery.screens.favorite
 
 import android.app.Service
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.media.MediaPlayer
 import android.os.Binder
 import android.os.IBinder
+import android.util.Log
 import com.example.photogallery.R
 import java.util.concurrent.TimeUnit
 
@@ -16,6 +20,7 @@ class PlayerService : Service() {
 
     companion object {
         const val PLAYER_STATE = "PLAYER_STATE"
+        const val PLAYER_BROADCAST_RECEIVER = "PLAYER_BROADCAST_RECEIVER"
     }
 
     inner class ServiceBinder : Binder() {
@@ -24,25 +29,37 @@ class PlayerService : Service() {
         }
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        super.onStartCommand(intent, flags, startId)
+    private val commandBroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            intent.extras?.let {
+                val playerState = it.getString(PLAYER_STATE, PlayerState.NONE.name)
 
-        intent.extras?.let {
-            val playerState = it.getString(PLAYER_STATE, PlayerState.NONE.name)
-
-            when (PlayerState.valueOf(playerState)) {
-                PlayerState.START -> {
-                    startMusic()
+                when (PlayerState.valueOf(playerState)) {
+                    PlayerState.START -> {
+                        startMusic()
+                    }
+                    PlayerState.PAUSE -> {
+                        pauseMusic()
+                    }
+                    PlayerState.STOP -> {
+                        stopMusic()
+                    }
+                    PlayerState.NONE -> {}
                 }
-                PlayerState.PAUSE -> {
-                    pauseMusic()
-                }
-                PlayerState.STOP -> {
-                    stopMusic()
-                }
-                PlayerState.NONE -> {}
             }
         }
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+
+        IntentFilter(PLAYER_BROADCAST_RECEIVER).apply {
+            registerReceiver(commandBroadcastReceiver, this)
+        }
+    }
+
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
         return START_NOT_STICKY
     }
 
@@ -56,6 +73,7 @@ class PlayerService : Service() {
             release()
         }
         player = null
+        unregisterReceiver(commandBroadcastReceiver)
 
         super.onDestroy()
     }
@@ -69,16 +87,19 @@ class PlayerService : Service() {
         player?.start()
     }
 
+
+    private fun pauseMusic() {
+        player?.pause()
+    }
+
     private fun stopMusic() {
         player?.apply {
             stop()
             release()
         }
         player = null
-    }
 
-    private fun pauseMusic() {
-        player?.pause()
+        this.stopSelf()
     }
 
     fun getCurrentPositionSong() = player?.currentPosition?.toLong()
