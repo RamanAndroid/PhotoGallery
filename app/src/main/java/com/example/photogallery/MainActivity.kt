@@ -18,7 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private lateinit var boundedService: PlayerService
+    private lateinit var playerService: PlayerService
     private var isBound = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,16 +57,17 @@ class MainActivity : ComponentActivity() {
     private val connectBoundService = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as PlayerService.ServiceBinder
-            boundedService = binder.getService()
+            playerService = binder.getService()
             isBound = true
 
-            boundedService.getCurrentPositionSong()?.let {
+            playerService.getCurrentPositionSong()?.let {
                 Toast.makeText(
                     this@MainActivity,
-                    "Проигранно музыки: ${boundedService.timePlayMusic(it)}",
+                    "Проигранно музыки: ${playerService.timePlayMusic(it)}",
                     Toast.LENGTH_LONG
                 ).show()
             }
+            Log.d("activity ", "player = client number ${playerService.numberClients()}")
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
@@ -84,10 +85,12 @@ class MainActivity : ComponentActivity() {
     fun bindService() {
         val intent = Intent(this, PlayerService::class.java)
         bindService(intent, connectBoundService, Context.BIND_AUTO_CREATE)
+        playerService.connectedClient()
     }
 
     fun unbindService() {
         if (isBound) {
+            playerService.disconnectedClient()
             unbindService(connectBoundService)
         }
     }

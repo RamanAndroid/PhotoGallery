@@ -1,14 +1,10 @@
 package com.example.photogallery.screens.favorite
 
 import android.app.Service
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.media.MediaPlayer
 import android.os.Binder
 import android.os.IBinder
-import android.util.Log
 import com.example.photogallery.R
 import java.util.concurrent.TimeUnit
 
@@ -17,11 +13,7 @@ class PlayerService : Service() {
     private val serviceBinder = ServiceBinder()
     private var player: MediaPlayer? = null
     private val song = R.raw.slim_shady_instrumental
-
-    companion object {
-        const val PLAYER_STATE = "PLAYER_STATE"
-        const val PLAYER_BROADCAST_RECEIVER = "PLAYER_BROADCAST_RECEIVER"
-    }
+    private var binderClients = 0
 
     inner class ServiceBinder : Binder() {
         fun getService(): PlayerService {
@@ -29,34 +21,15 @@ class PlayerService : Service() {
         }
     }
 
-    private val commandBroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            intent.extras?.let {
-                val playerState = it.getString(PLAYER_STATE, PlayerState.NONE.name)
-
-                when (PlayerState.valueOf(playerState)) {
-                    PlayerState.START -> {
-                        startMusic()
-                    }
-                    PlayerState.PAUSE -> {
-                        pauseMusic()
-                    }
-                    PlayerState.STOP -> {
-                        stopMusic()
-                    }
-                    PlayerState.NONE -> {}
-                }
-            }
-        }
+    fun connectedClient() {
+        binderClients++
     }
 
-    override fun onCreate() {
-        super.onCreate()
-
-        IntentFilter(PLAYER_BROADCAST_RECEIVER).apply {
-            registerReceiver(commandBroadcastReceiver, this)
-        }
+    fun disconnectedClient() {
+        binderClients--
     }
+
+    fun numberClients(): Int = binderClients
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
@@ -73,12 +46,11 @@ class PlayerService : Service() {
             release()
         }
         player = null
-        unregisterReceiver(commandBroadcastReceiver)
 
         super.onDestroy()
     }
 
-    private fun startMusic() {
+    fun startMusic() {
         if (player == null) {
             player = MediaPlayer.create(this, song).apply {
                 isLooping = true
@@ -88,11 +60,11 @@ class PlayerService : Service() {
     }
 
 
-    private fun pauseMusic() {
+    fun pauseMusic() {
         player?.pause()
     }
 
-    private fun stopMusic() {
+    fun stopMusic() {
         player?.apply {
             stop()
             release()
@@ -112,11 +84,4 @@ class PlayerService : Service() {
                     - minutes * TimeUnit.SECONDS.convert(1, TimeUnit.MINUTES))
         return String.format("%02d:%02d", minutes, seconds)
     }
-}
-
-enum class PlayerState {
-    START,
-    PAUSE,
-    STOP,
-    NONE
 }
