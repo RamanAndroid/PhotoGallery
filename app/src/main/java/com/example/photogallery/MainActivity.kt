@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,6 +28,30 @@ class MainActivity : ComponentActivity() {
                 PhotoGalleryApp()
             }
         }
+        Log.d("activity ", "main = onCreate")
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        Log.d("activity ", "main = onNewIntent")
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        Log.d("activity ", "main = onStart")
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        Log.d("activity ", "main = onResume")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        Log.d("activity ", "main = onDestroy")
     }
 
     private val connectBoundService = object : ServiceConnection {

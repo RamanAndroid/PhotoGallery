@@ -1,7 +1,9 @@
 package com.example.photogallery
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
@@ -30,21 +32,37 @@ class PlayerActivity : ComponentActivity() {
                 Player()
             }
         }
+        Intent(this, PlayerService::class.java).apply {
+            this@PlayerActivity.startService(this)
+        }
+        Log.d("activity ", "player = onCreate")
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        Log.d("activity ", "player = onNewIntent")
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d("activity ", "player = onStart")
     }
 
     override fun onResume() {
         super.onResume()
+        Log.d("activity ", "player = onResume")
+    }
 
-        Intent(this, PlayerService::class.java).apply {
-            this@PlayerActivity.startService(this)
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+
+        Log.d("activity ", "player = onDestroy")
     }
 }
 
 @Composable
 fun Player() {
-    val activity = LocalContext.current as PlayerActivity
-    val onBackPressed = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -61,7 +79,7 @@ fun Player() {
 
         Button(
             onClick = {
-                onBackPressed?.onBackPressed()
+                context.startActivity(Intent(context, MainActivity::class.java))
             }
         ) {
             Text("Main Activity", color = Color.White)
@@ -74,11 +92,7 @@ fun Player() {
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
-                        Intent().apply {
-                            action = PlayerService.PLAYER_BROADCAST_RECEIVER
-                            putExtra(PlayerService.PLAYER_STATE, PlayerState.START.name)
-                            activity.sendBroadcast(this)
-                        }
+                        context.sendCommandToPlayerService(PlayerState.START)
                     },
                 painter = painterResource(R.drawable.ic_play_circle_24),
                 contentDescription = null,
@@ -87,11 +101,7 @@ fun Player() {
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
-                        Intent().apply {
-                            action = PlayerService.PLAYER_BROADCAST_RECEIVER
-                            putExtra(PlayerService.PLAYER_STATE, PlayerState.PAUSE.name)
-                            activity.sendBroadcast(this)
-                        }
+                        context.sendCommandToPlayerService(PlayerState.PAUSE)
                     },
                 painter = painterResource(R.drawable.ic_pause_circle_24),
                 contentDescription = null,
@@ -100,15 +110,18 @@ fun Player() {
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
-                        Intent().apply {
-                            action = PlayerService.PLAYER_BROADCAST_RECEIVER
-                            putExtra(PlayerService.PLAYER_STATE, PlayerState.STOP.name)
-                            activity.sendBroadcast(this)
-                        }
+                        context.sendCommandToPlayerService(PlayerState.STOP)
                     },
                 painter = painterResource(R.drawable.ic_stop_circle_24),
                 contentDescription = null,
             )
         }
     }
+}
+
+private fun Context.sendCommandToPlayerService(command: PlayerState) {
+    val intent = Intent()
+    intent.action = PlayerService.PLAYER_BROADCAST_RECEIVER
+    intent.putExtra(PlayerService.PLAYER_STATE, command.name)
+    this.sendBroadcast(intent)
 }
