@@ -23,6 +23,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             PhotoGalleryTheme {
                 PhotoGalleryApp()
@@ -31,24 +32,6 @@ class MainActivity : ComponentActivity() {
         Intent(this, PlayerService::class.java).apply {
             startService(this)
         }
-        Log.d("activityLifecycle", "main = onCreate")
-    }
-
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-        Log.d("activityLifecycle", "main = onNewIntent")
-    }
-
-    override fun onStart() {
-        super.onStart()
-
-        Log.d("activityLifecycle", "main = onStart")
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        Log.d("activityLifecycle", "main = onResume")
     }
 
     override fun onDestroy() {
@@ -57,7 +40,6 @@ class MainActivity : ComponentActivity() {
         Intent(this, PlayerService::class.java).apply {
             stopService(this)
         }
-        Log.d("activityLifecycle", "main = onDestroy")
     }
 
     private val connectBoundService = object : ServiceConnection {

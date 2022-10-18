@@ -36,33 +36,15 @@ class PlayerActivity : ComponentActivity() {
                 Player()
             }
         }
-        Log.d("activityLifecycle", "player = onCreate")
         bindService()
-    }
-
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-        Log.d("activityLifecycle", "player = onNewIntent")
-    }
-
-    override fun onStart() {
-        super.onStart()
-        Log.d("activityLifecycle", "player = onStart")
     }
 
     override fun onResume() {
         super.onResume()
-        Log.d("activityLifecycle", "player = onResume")
 
         if (isBound) {
             Log.d("activityLifecycle", "player = client number ${playerService.numberClients()}")
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-
-        Log.d("activity ", "player = onDestroy")
     }
 
     internal val connectBoundService = object : ServiceConnection {
