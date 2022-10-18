@@ -28,30 +28,36 @@ class MainActivity : ComponentActivity() {
                 PhotoGalleryApp()
             }
         }
-        Log.d("activity ", "main = onCreate")
+        Intent(this, PlayerService::class.java).apply {
+            startService(this)
+        }
+        Log.d("activityLifecycle", "main = onCreate")
     }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        Log.d("activity ", "main = onNewIntent")
+        Log.d("activityLifecycle", "main = onNewIntent")
     }
 
     override fun onStart() {
         super.onStart()
 
-        Log.d("activity ", "main = onStart")
+        Log.d("activityLifecycle", "main = onStart")
     }
 
     override fun onResume() {
         super.onResume()
 
-        Log.d("activity ", "main = onResume")
+        Log.d("activityLifecycle", "main = onResume")
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
-        Log.d("activity ", "main = onDestroy")
+        Intent(this, PlayerService::class.java).apply {
+            stopService(this)
+        }
+        Log.d("activityLifecycle", "main = onDestroy")
     }
 
     private val connectBoundService = object : ServiceConnection {
@@ -59,6 +65,7 @@ class MainActivity : ComponentActivity() {
             val binder = service as PlayerService.ServiceBinder
             playerService = binder.getService()
             isBound = true
+            playerService.connectedClient()
 
             playerService.getCurrentPositionSong()?.let {
                 Toast.makeText(
@@ -67,7 +74,7 @@ class MainActivity : ComponentActivity() {
                     Toast.LENGTH_LONG
                 ).show()
             }
-            Log.d("activity ", "player = client number ${playerService.numberClients()}")
+            Log.d("activityLifecycle", "player = client number ${playerService.numberClients()}")
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
@@ -85,13 +92,12 @@ class MainActivity : ComponentActivity() {
     fun bindService() {
         val intent = Intent(this, PlayerService::class.java)
         bindService(intent, connectBoundService, Context.BIND_AUTO_CREATE)
-        playerService.connectedClient()
     }
 
     fun unbindService() {
         if (isBound) {
-            playerService.disconnectedClient()
             unbindService(connectBoundService)
+            playerService.disconnectedClient()
         }
     }
 }

@@ -36,26 +36,26 @@ class PlayerActivity : ComponentActivity() {
                 Player()
             }
         }
+        Log.d("activityLifecycle", "player = onCreate")
         bindService()
-        Log.d("activity ", "player = onCreate")
     }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        Log.d("activity ", "player = onNewIntent")
+        Log.d("activityLifecycle", "player = onNewIntent")
     }
 
     override fun onStart() {
         super.onStart()
-        Log.d("activity ", "player = onStart")
+        Log.d("activityLifecycle", "player = onStart")
     }
 
     override fun onResume() {
         super.onResume()
-        Log.d("activity ", "player = onResume")
+        Log.d("activityLifecycle", "player = onResume")
 
         if (isBound) {
-            Log.d("activity ", "player = client number ${playerService.numberClients()}")
+            Log.d("activityLifecycle", "player = client number ${playerService.numberClients()}")
         }
     }
 
@@ -70,6 +70,8 @@ class PlayerActivity : ComponentActivity() {
             val binder = service as PlayerService.ServiceBinder
             playerService = binder.getService()
             isBound = true
+
+            playerService.connectedClient()
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
@@ -87,12 +89,6 @@ class PlayerActivity : ComponentActivity() {
     private fun bindService() {
         val intent = Intent(this, PlayerService::class.java)
         bindService(intent, connectBoundService, Context.BIND_AUTO_CREATE)
-        playerService.connectedClient()
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        this.startActivity(Intent(this, MainActivity::class.java))
     }
 }
 

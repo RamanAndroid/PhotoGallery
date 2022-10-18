@@ -59,7 +59,6 @@ fun FavoriteImagesScreen(
                     viewModel.networkStateReceiver()
                 }
                 Event.ON_RESUME -> {
-                    if(activity.is)
                     activity.bindService()
                 }
                 Event.ON_PAUSE -> {

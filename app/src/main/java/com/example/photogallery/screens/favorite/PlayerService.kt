@@ -5,6 +5,7 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Binder
 import android.os.IBinder
+import android.util.Log
 import com.example.photogallery.R
 import java.util.concurrent.TimeUnit
 
@@ -29,11 +30,16 @@ class PlayerService : Service() {
         binderClients--
     }
 
+    override fun onUnbind(intent: Intent?): Boolean {
+        Log.d("activityLifecycle", "service = onUnbind")
+        return super.onUnbind(intent)
+    }
+
     fun numberClients(): Int = binderClients
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        return START_NOT_STICKY
+        return START_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder {
@@ -46,7 +52,7 @@ class PlayerService : Service() {
             release()
         }
         player = null
-
+        Log.d("activityLifecycle", "service = onDestroy")
         super.onDestroy()
     }
 
