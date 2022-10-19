@@ -47,12 +47,17 @@ class PlayerActivity : ComponentActivity() {
         }
     }
 
-    internal val connectBoundService = object : ServiceConnection {
+    override fun onDestroy() {
+        unbindService()
+
+        super.onDestroy()
+    }
+
+    private val connectBoundService = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as PlayerService.ServiceBinder
             playerService = binder.getService()
             isBound = true
-
             playerService.connectedClient()
         }
 
@@ -71,6 +76,14 @@ class PlayerActivity : ComponentActivity() {
     private fun bindService() {
         val intent = Intent(this, PlayerService::class.java)
         bindService(intent, connectBoundService, Context.BIND_AUTO_CREATE)
+    }
+
+    private fun unbindService() {
+        if (isBound) {
+            unbindService(connectBoundService)
+            isBound = false
+            playerService.disconnectedClient()
+        }
     }
 }
 
@@ -126,9 +139,6 @@ fun Player() {
                     .clickable {
                         activity.apply {
                             playerService.stopMusic()
-                            unbindService(connectBoundService)
-                            isBound = false
-                            playerService.disconnectedClient()
                         }
                     },
                 painter = painterResource(R.drawable.ic_stop_circle_24),

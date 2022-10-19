@@ -59,14 +59,13 @@ fun FavoriteImagesScreen(
                     viewModel.networkStateReceiver()
                 }
                 Event.ON_RESUME -> {
-                    activity.bindService()
+                    activity.showMusicTime()
                 }
                 Event.ON_PAUSE -> {
                     val intent = Intent(activity, IntentService::class.java).apply {
                         putExtra(IntentService.DATA_NAME, "Essential information")
                     }
 
-                    activity.unbindService()
                     activity.startService(intent)
                 }
                 else -> {}

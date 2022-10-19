@@ -29,17 +29,13 @@ class MainActivity : ComponentActivity() {
                 PhotoGalleryApp()
             }
         }
-        Intent(this, PlayerService::class.java).apply {
-            startService(this)
-        }
+        bindService()
     }
 
     override fun onDestroy() {
-        super.onDestroy()
+        unbindService()
 
-        Intent(this, PlayerService::class.java).apply {
-            stopService(this)
-        }
+        super.onDestroy()
     }
 
     private val connectBoundService = object : ServiceConnection {
@@ -48,15 +44,6 @@ class MainActivity : ComponentActivity() {
             playerService = binder.getService()
             isBound = true
             playerService.connectedClient()
-
-            playerService.getCurrentPositionSong()?.let {
-                Toast.makeText(
-                    this@MainActivity,
-                    "Проигранно музыки: ${playerService.timePlayMusic(it)}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-            Log.d("activityLifecycle", "player = client number ${playerService.numberClients()}")
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
@@ -71,15 +58,26 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun bindService() {
+    private fun bindService() {
         val intent = Intent(this, PlayerService::class.java)
         bindService(intent, connectBoundService, Context.BIND_AUTO_CREATE)
     }
 
-    fun unbindService() {
+    private fun unbindService() {
         if (isBound) {
             unbindService(connectBoundService)
             playerService.disconnectedClient()
         }
+    }
+
+    fun showMusicTime() {
+        playerService.getCurrentPositionSong()?.let {
+            Toast.makeText(
+                this@MainActivity,
+                "Проигранно музыки: ${playerService.timePlayMusic(it)}",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+        Log.d("activityLifecycle", "player = client number ${playerService.numberClients()}")
     }
 }
